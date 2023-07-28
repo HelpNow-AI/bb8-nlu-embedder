@@ -133,7 +133,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     data = item['data']
 
     query_doc_list = [(r['query'], r['passage']) for r in data]
-    similarity_scores = model.predict(query_doc_list)
+    similarity_scores = assist_cross_encoder.predict(query_doc_list)
 
     return similarity_scores
 
