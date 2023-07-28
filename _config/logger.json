@@ -1,0 +1,34 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "formatters": {
+      "default": {
+        "format": "%(levelname)s: %(asctime)s: %(module)s - %(message)s",
+        "datefmt": "%Y-%m-%d %H:%M:%S"
+      },
+      "error": {
+        "format": "%(levelname)s: %(asctime)s: %(module)s: %(lineno)s - %(message)s",
+        "datefmt": "%Y-%m-%d %H:%M:%S"
+      }
+    },
+    "handlers": {
+      "console": {
+        "class": "logging.StreamHandler",
+        "level": "DEBUG",
+        "formatter": "default"
+      },
+      "file": {
+        "class": "logging.FileHandler",
+        "level": "ERROR",
+        "formatter": "error",
+        "filename": "error.log"
+      }
+    },
+    "loggers": {
+      "bb8-nlu-loggger": {
+        "level": "DEBUG",
+        "handlers": ["console", "file"],
+        "propagate": true
+      }
+    }
+  }
