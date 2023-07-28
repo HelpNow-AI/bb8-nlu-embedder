@@ -1,5 +1,5 @@
 # Base IMAGE
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8-slim
+FROM python:3.8-slim
 
 # Set the working directory to /app
 WORKDIR /app
@@ -13,5 +13,5 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
 # Make port 8000 available to the world outside this container
 EXPOSE 8000
 
-# Run app.py when the container launches
-CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
+# Run server.py when the container launches
+CMD ["python", "server.py"]
