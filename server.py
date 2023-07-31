@@ -14,13 +14,16 @@ logger.info("🔥 bb8-embedder by Triton Inferece Server")
 
 
 ## Load models
-# nlu_embedder = SentenceTransformer('./transformer-models/nlu-sentence-embedder', device='cpu')
-nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device='cpu')
+# nlu_embedder = SentenceTransformer('./transformer-models/nlu-sentence-embedder', device='cuda')
+nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device='cuda')
 # pool = nlu_embedder.start_multi_process_pool()
 
-# assist_embedder = SentenceTransformer('./transformer-models/assist-sentence-embedder', device='cpu')
-assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cpu')
+# assist_embedder = SentenceTransformer('./transformer-models/assist-sentence-embedder', device='cuda')
+assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cuda')
 # pool = assist_embedder.start_multi_process_pool()
+
+
+assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device='cuda')
 
 
 @batch
@@ -33,7 +36,16 @@ def _infer_fn_nlu(sequence: np.ndarray):
     return {'embed_vectors': embed_vectors}
 
 @batch
-def _infer_fn_assist(sequence: np.ndarray):
+def _infer_fn_assist_biencoder(sequence: np.ndarray):
+    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
+    sequence = sum(sequence.tolist(), [])
+
+    embed_vectors = assist_bi_encoder.encode(sequence)
+
+    return {'embed_vectors': embed_vectors}
+
+@batch
+def _infer_fn_assist_crossencoder(sequence: np.ndarray):
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     sequence = sum(sequence.tolist(), [])
 
@@ -69,7 +81,7 @@ def main():
         )
         triton.bind(
             model_name="bb8-embedder-assist",
-            infer_func=_infer_fn_assist,
+            infer_func=_infer_fn_assist_biencoder,
             inputs=[
                 Tensor(name="sequence", dtype=bytes, shape=(1,)),
             ],
