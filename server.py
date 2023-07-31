@@ -2,7 +2,7 @@ import argparse
 import logging
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 
 from pytriton.decorators import batch
 from pytriton.model_config import ModelConfig, Tensor
@@ -14,14 +14,11 @@ logger.info("🔥 bb8-embedder by Triton Inferece Server")
 
 
 ## Load models
-# nlu_embedder = SentenceTransformer('./transformer-models/nlu-sentence-embedder', device='cuda')
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device='cuda')
 # pool = nlu_embedder.start_multi_process_pool()
 
-# assist_embedder = SentenceTransformer('./transformer-models/assist-sentence-embedder', device='cuda')
 assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cuda')
 # pool = assist_embedder.start_multi_process_pool()
-
 
 assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device='cuda')
 
@@ -45,13 +42,17 @@ def _infer_fn_assist_biencoder(sequence: np.ndarray):
     return {'embed_vectors': embed_vectors}
 
 @batch
-def _infer_fn_assist_crossencoder(sequence: np.ndarray):
-    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
-    sequence = sum(sequence.tolist(), [])
+def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
+    queries = np.char.decode(queries.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
+    passages = np.char.decode(passages.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
+    queries = sum(queries.tolist(), [])
+    passages = sum(passages.tolist(), [])
 
-    embed_vectors = assist_bi_encoder.encode(sequence)
+    query_passage_list = [(query, passage) for query, passage in zip(queries, passages)]
+    similarity_scores = assist_cross_encoder.predict(query_passage_list)
 
-    return {'embed_vectors': embed_vectors}
+    return {'similarity_scores': similarity_scores}
+
 
 
 def main():
@@ -87,6 +88,18 @@ def main():
             ],
             outputs=[
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
+            ],
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+        )
+        triton.bind(
+            model_name="bb8-embedder-assist-crossencoder",
+            infer_func=_infer_fn_assist_crossencoder,
+            inputs=[
+                Tensor(name="queries", dtype=bytes, shape=(1,)),
+                Tensor(name="passages", dtype=bytes, shape=(1,)),
+            ],
+            outputs=[
+                Tensor(name="similarity_scores", dtype=bytes, shape=(-1,)),
             ],
             config=ModelConfig(max_batch_size=args.max_batch_size),
         )

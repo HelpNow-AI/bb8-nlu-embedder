@@ -34,3 +34,30 @@ with ModelClient("34.64.251.218:8000", "bb8-embedder-assist", init_timeout_s=600
     print(embed_vector)
 
 
+
+
+
+
+
+import numpy as np
+from pytriton.client import ModelClient
+
+
+queries = np.array(
+    [
+        ["john is my friends"],["john is my friends"]
+    ]
+)
+
+passages = np.array(
+    [
+        ["john is my friends"], ["Sunset Power"]
+    ]
+)
+
+queries = np.char.encode(queries, "utf-8")
+passages = np.char.encode(passages, "utf-8")
+
+with ModelClient("localhost", "bb8-embedder-assist-crossencoder", init_timeout_s=600.0) as assist_client:
+    result_dict = assist_client.infer_batch(queries, passages)
+    print(result_dict)
