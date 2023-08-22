@@ -41,14 +41,8 @@ app.add_middleware(
 
 
 ## SentenceBERT ##
-# nlu_embedder = SentenceTransformer('./transformer-models/nlu-sentence-embedder', device='cpu')
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device='cpu')
-# pool = nlu_embedder.start_multi_process_pool()
-
-# assist_embedder = SentenceTransformer('./transformer-models/assist-sentence-embedder', device='cpu')
-assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cpu')
-# pool = assist_embedder.start_multi_process_pool()
-
+assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cpu')\
 assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device='cpu')
 
 @app.get('/health')
@@ -116,7 +110,6 @@ def sentence_embedding_batch(item: EmbeddingItem):
 
     try:
         embed_vectors = assist_bi_encoder.encode(query_list)
-        # embed_vectors = assist_bi_encoder.encode_multi_process(query_list, pool)
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vectors = None
