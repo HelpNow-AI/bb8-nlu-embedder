@@ -41,9 +41,9 @@ app.add_middleware(
 
 
 ## SentenceBERT ##
-nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device='cpu')
-assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cpu')\
-assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device='cpu')
+nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device='cuda')
+assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cuda')
+assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device='cuda')
 
 @app.get('/health')
 def health_check():
