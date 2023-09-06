@@ -7,6 +7,7 @@ import requests
 # from concurrent import futures
 
 import numpy as np
+import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -28,7 +29,7 @@ output_model_dir = "./_output" # trained model
 
 ## FastAPI & CORS (Cross-Origin Resource Sharing) ##
 app = FastAPI(
-    title="bb8-embedder-gpu",
+    title="helpnow-embedder",
     version="0.2.0"
 )
 app.add_middleware(
@@ -39,18 +40,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ## SentenceBERT ##
-nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device='cuda')
-assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cuda')
-assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device='cuda')
+nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
+assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device=device)
+assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device=device)
 
 @app.get('/health')
 def health_check():
     '''
     Health Check
     '''
-    return JSONResponse({'status':"bb8-embedder-gpu is listening..", "timestamp":datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+    return JSONResponse({'status':"helpnow-embedder is listening..", "timestamp":datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
 
 
 class EmbeddingItem(BaseModel):
@@ -59,11 +61,10 @@ class EmbeddingItem(BaseModel):
 @app.get("/api/nlu/sentence-embedding")
 def sentence_embedding(query):
     try:
-        embed_vector = nlu_embedder.encode(query)
+        embed_vector = nlu_embedder.encode(query, device=device)
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vector = None
-
 
     embed_vector = [float(v) for v in embed_vector]
 
@@ -77,7 +78,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     query_list = [r['text'] for r in data]
 
     try:
-        embed_vectors = nlu_embedder.encode(query_list)
+        embed_vectors = nlu_embedder.encode(query_list, device=device)
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vectors = None
@@ -91,11 +92,10 @@ def sentence_embedding_batch(item: EmbeddingItem):
 @app.get("/api/assist/sentence-embedding")
 def sentence_embedding(query):
     try:
-        embed_vector = assist_bi_encoder.encode(query)
+        embed_vector = assist_bi_encoder.encode(query, device=device)
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vector = None
-
 
     embed_vector = [float(v) for v in embed_vector]
 
@@ -109,7 +109,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     query_list = [r['text'] for r in data]
 
     try:
-        embed_vectors = assist_bi_encoder.encode(query_list)
+        embed_vectors = assist_bi_encoder.encode(query_list, device=device)
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vectors = None
@@ -122,15 +122,13 @@ def sentence_embedding_batch(item: EmbeddingItem):
 
 @app.post("/api/assist/cross-encoder/similarity-scores")
 def sentence_embedding_batch(item: EmbeddingItem):
+    s = time.time()
     item = item.dict()
     data = item['data']
 
     query_doc_list = [(r['query'], r['passage']) for r in data]
     similarity_scores = assist_cross_encoder.predict(query_doc_list)
     similarity_scores = [float(score)for score in similarity_scores]
+    print(f'⏱️ process time of cross-encoder: {time.time() - s}')
 
     return JSONResponse({"similarity_scores": similarity_scores})
-
-
-
-
