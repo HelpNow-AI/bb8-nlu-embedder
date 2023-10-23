@@ -11,6 +11,8 @@ import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+from FlagEmbedding import FlagModel, FlagReranker
+
 
 # fastapi
 import uvicorn
@@ -44,8 +46,19 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ## SentenceBERT ##
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
-assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device=device)
-assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device=device)
+# assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device=device)
+# assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device=device)
+
+
+
+from FlagEmbedding import FlagModel
+assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
+            query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
+            use_fp16=True
+            ) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+
+assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=True) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+
 
 @app.get('/health')
 def health_check():
@@ -90,9 +103,9 @@ def sentence_embedding_batch(item: EmbeddingItem):
 
 
 @app.get("/api/assist/sentence-embedding")
-def sentence_embedding(query):
+def sentence_embedding(query: str):
     try:
-        embed_vector = assist_bi_encoder.encode(query, device=device)
+        embed_vector = assist_bi_encoder.encode_queries(query)
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vector = None
@@ -109,7 +122,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     query_list = [r['text'] for r in data]
 
     try:
-        embed_vectors = assist_bi_encoder.encode(query_list, device=device)
+        embed_vectors = assist_bi_encoder.encode(query_list)
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vectors = None
@@ -126,9 +139,9 @@ def sentence_embedding_batch(item: EmbeddingItem):
     item = item.dict()
     data = item['data']
 
-    query_doc_list = [(r['query'], r['passage']) for r in data]
-    similarity_scores = assist_cross_encoder.predict(query_doc_list)
-    similarity_scores = [float(score)for score in similarity_scores]
+    query_doc_list = [r['query'], r['passage'] for r in data]
+    similarity_scores = assist_cross_encoder.compute_score(query_doc_list)
+
     print(f'⏱️ process time of cross-encoder: {time.time() - s}')
 
     return JSONResponse({"similarity_scores": similarity_scores})
