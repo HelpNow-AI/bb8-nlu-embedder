@@ -139,7 +139,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     item = item.dict()
     data = item['data']
 
-    query_doc_list = [r['query'], r['passage'] for r in data]
+    query_doc_list = [[r['query'], r['passage']] for r in data]
     similarity_scores = assist_cross_encoder.compute_score(query_doc_list)
 
     print(f'⏱️ process time of cross-encoder: {time.time() - s}')
