@@ -9,8 +9,6 @@ import requests
 import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
-
 from FlagEmbedding import FlagModel, FlagReranker
 
 
@@ -32,7 +30,7 @@ output_model_dir = "./_output" # trained model
 ## FastAPI & CORS (Cross-Origin Resource Sharing) ##
 app = FastAPI(
     title="helpnow-embedder",
-    version="0.2.0"
+    version="0.2.5"
 )
 app.add_middleware(
     CORSMiddleware,
@@ -44,19 +42,12 @@ app.add_middleware(
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-## SentenceBERT ##
+# Load models
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
-# assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device=device)
-# assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device=device)
-
-
-
-from FlagEmbedding import FlagModel
 assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
             use_fp16=True
             ) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-
 assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=True) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 
 
