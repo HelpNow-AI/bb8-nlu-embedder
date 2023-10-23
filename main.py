@@ -46,9 +46,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
 assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
-            use_fp16=True
-            ) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=True) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+            use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 
 
 @app.get('/health')
@@ -96,7 +95,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
 @app.get("/api/assist/sentence-embedding")
 def sentence_embedding(query: str):
     try:
-        embed_vector = assist_bi_encoder.encode_queries(query)
+        embed_vector = assist_bi_encoder.encode_queries(query) # query_instruction_for_retrieval + query 
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vector = None
