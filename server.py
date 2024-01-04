@@ -2,7 +2,9 @@ import argparse
 import logging
 
 import numpy as np
+import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
+from FlagEmbedding import FlagModel, FlagReranker
 
 from pytriton.decorators import batch
 from pytriton.model_config import ModelConfig, Tensor
@@ -13,14 +15,14 @@ from _config import logger
 logger.info("🔥 bb8-embedder by Triton Inferece Server")
 
 
-## Load models
-nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device='cuda')
-# pool = nlu_embedder.start_multi_process_pool()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-assist_bi_encoder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1', device='cuda')
-# pool = assist_embedder.start_multi_process_pool()
-
-assist_cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2', device='cuda')
+# Load models
+nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
+assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
+            query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
+            use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 
 
 @batch
@@ -33,7 +35,17 @@ def _infer_fn_nlu(sequence: np.ndarray):
     return {'embed_vectors': embed_vectors}
 
 @batch
-def _infer_fn_assist_biencoder(sequence: np.ndarray):
+def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
+    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
+    sequence = sum(sequence.tolist(), [])
+
+    embed_vectors = assist_bi_encoder.encode_queries(sequence)
+
+    return {'embed_vectors': embed_vectors}
+
+
+@batch
+def _infer_fn_assist_biencoder_passage(sequence: np.ndarray):
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     sequence = sum(sequence.tolist(), [])
 
@@ -48,8 +60,8 @@ def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
     queries = sum(queries.tolist(), [])
     passages = sum(passages.tolist(), [])
 
-    query_passage_list = [(query, passage) for query, passage in zip(queries, passages)]
-    similarity_scores = assist_cross_encoder.predict(query_passage_list)
+    query_passage_list = [[query, passage] for query, passage in zip(queries, passages)]
+    similarity_scores = assist_cross_encoder.compute_score(query_passage_list)
 
     return {'similarity_scores': similarity_scores}
 
@@ -81,8 +93,19 @@ def main():
             config=ModelConfig(max_batch_size=args.max_batch_size),
         )
         triton.bind(
-            model_name="bb8-embedder-assist",
-            infer_func=_infer_fn_assist_biencoder,
+            model_name="bb8-embedder-assist-biencoder-query",
+            infer_func=_infer_fn_assist_biencoder_query,
+            inputs=[
+                Tensor(name="sequence", dtype=bytes, shape=(1,)),
+            ],
+            outputs=[
+                Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
+            ],
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+        )
+        triton.bind(
+            model_name="bb8-embedder-assist-biencoder-passage",
+            infer_func=_infer_fn_assist_biencoder_passage,
             inputs=[
                 Tensor(name="sequence", dtype=bytes, shape=(1,)),
             ],
