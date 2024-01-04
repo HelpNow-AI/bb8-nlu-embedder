@@ -57,7 +57,7 @@ def check_cuda_memory():
     current_memory = torch.cuda.memory_allocated() / (1024**3)
     total_memory = gpu_properties.total_memory / (1024**3)
 
-    print(f'Usage of Current Memory: {current_memory} GB / {max_memory} GB')
+    print(f'Usage of Current Memory: {current_memory} GB / {total_memory} GB')
 
 
 @app.get('/health')
