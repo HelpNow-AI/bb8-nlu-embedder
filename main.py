@@ -54,8 +54,8 @@ assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # 
 
 
 def check_cuda_memory():
-    current_memory = torch.cuda.memory_allocated() / (1024**3)
-    total_memory = gpu_properties.total_memory / (1024**3)
+    current_memory = round(torch.cuda.memory_allocated() / (1024**3), 4)
+    total_memory = round(gpu_properties.total_memory / (1024**3), 4)
 
     print(f'Usage of Current Memory: {current_memory} GB / {total_memory} GB')
 
@@ -82,6 +82,11 @@ def sentence_embedding(query):
     embed_vector = [float(v) for v in embed_vector]
 
     check_cuda_memory()
+    print('--------------------------------')
+    del embed_vector
+    torch.cuda.empty_cache()
+    check_cuda_memory()
+
     return JSONResponse({'embed_vector': embed_vector})
 
 
