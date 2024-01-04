@@ -50,6 +50,13 @@ assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5',
 assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 
 
+def check_cuda_memory():
+    current_memory = torch.cuda.memory_allocated()
+    max_memory = torch.cuda.max_memory_allocated()
+
+    print(f'Usage of Current Memory: {current_memory}/{max_memory}')
+
+
 @app.get('/health')
 def health_check():
     '''
@@ -71,6 +78,7 @@ def sentence_embedding(query):
 
     embed_vector = [float(v) for v in embed_vector]
 
+    check_cuda_memory()
     return JSONResponse({'embed_vector': embed_vector})
 
 
@@ -89,6 +97,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     for i, row in enumerate(data):
         row['embed_vector'] = [float(v) for v in embed_vectors[i]]
 
+    check_cuda_memory()
     return JSONResponse(data)
 
 
@@ -102,6 +111,7 @@ def sentence_embedding(query: str):
 
     embed_vector = [float(v) for v in embed_vector]
 
+    check_cuda_memory()
     return JSONResponse({'embed_vector': embed_vector})
 
 
@@ -120,6 +130,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     for i, row in enumerate(data):
         row['embed_vector'] = [float(v) for v in embed_vectors[i]]
 
+    check_cuda_memory()
     return JSONResponse(data)
 
 
@@ -131,7 +142,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
 
     query_doc_list = [[r['query'], r['passage']] for r in data]
     similarity_scores = assist_cross_encoder.compute_score(query_doc_list)
-
     print(f'⏱️ process time of cross-encoder: {time.time() - s}')
 
+    check_cuda_memory()
     return JSONResponse({"similarity_scores": similarity_scores})
