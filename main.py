@@ -40,7 +40,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if device.type == "cuda":
+    gpu_properties = torch.cuda.get_device_properties(0)
 
 # Load models
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
@@ -48,6 +51,13 @@ assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5',
             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+
+
+def check_cuda_memory():
+    current_memory = round(torch.cuda.memory_allocated() / (1024**3), 4)
+    total_memory = round(gpu_properties.total_memory / (1024**3), 4)
+
+    print(f'Usage of Current Memory: {current_memory} GB / {total_memory} GB')
 
 
 @app.get('/health')
@@ -71,6 +81,7 @@ def sentence_embedding(query):
 
     embed_vector = [float(v) for v in embed_vector]
 
+    check_cuda_memory()
     return JSONResponse({'embed_vector': embed_vector})
 
 
@@ -89,6 +100,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     for i, row in enumerate(data):
         row['embed_vector'] = [float(v) for v in embed_vectors[i]]
 
+    check_cuda_memory()
     return JSONResponse(data)
 
 
@@ -102,6 +114,7 @@ def sentence_embedding(query: str):
 
     embed_vector = [float(v) for v in embed_vector]
 
+    check_cuda_memory()
     return JSONResponse({'embed_vector': embed_vector})
 
 
@@ -120,6 +133,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     for i, row in enumerate(data):
         row['embed_vector'] = [float(v) for v in embed_vectors[i]]
 
+    check_cuda_memory()
     return JSONResponse(data)
 
 
@@ -131,7 +145,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
 
     query_doc_list = [[r['query'], r['passage']] for r in data]
     similarity_scores = assist_cross_encoder.compute_score(query_doc_list)
-
     print(f'⏱️ process time of cross-encoder: {time.time() - s}')
 
+    check_cuda_memory()
     return JSONResponse({"similarity_scores": similarity_scores})
