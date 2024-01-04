@@ -82,11 +82,6 @@ def sentence_embedding(query):
     embed_vector = [float(v) for v in embed_vector]
 
     check_cuda_memory()
-    print('--------------------------------')
-    del embed_vector
-    torch.cuda.empty_cache()
-    check_cuda_memory()
-
     return JSONResponse({'embed_vector': embed_vector})
 
 
