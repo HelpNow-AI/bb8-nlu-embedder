@@ -40,7 +40,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if device.type == "cuda":
+    gpu_properties = torch.cuda.get_device_properties(0)
 
 # Load models
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
@@ -51,10 +54,10 @@ assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # 
 
 
 def check_cuda_memory():
-    current_memory = torch.cuda.memory_allocated()
-    max_memory = torch.cuda.max_memory_allocated()
+    current_memory = torch.cuda.memory_allocated() / (1024**3)
+    total_memory = gpu_properties.total_memory / (1024**3)
 
-    print(f'Usage of Current Memory: {current_memory}/{max_memory}')
+    print(f'Usage of Current Memory: {current_memory} GB / {max_memory} GB')
 
 
 @app.get('/health')
