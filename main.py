@@ -17,6 +17,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
@@ -32,20 +33,25 @@ app = FastAPI(
     title="helpnow-embedder",
     version="0.2.5"
 )
+
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+    TrustedHostMiddleware, 
+    allowed_hosts=[
         "https://bb8-nlu-sandbox.dev.opsnow.com",
         "https://bb8-nlu-dev.dev.opsnow.com",
         "https://bb8-nlu-inferencer-sandbox.dev.opsnow.com",
         "https://bb8-nlu-inferencer-dev.dev.opsnow.com",
         "https://bb8-assist-sandbox.dev.opsnow.com",
         "https://bb8-assist-dev.dev.opsnow.com"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    ]
 )
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
