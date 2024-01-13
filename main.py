@@ -34,20 +34,20 @@ app = FastAPI(
     version="0.2.5"
 )
 
-app.add_middleware(
-    TrustedHostMiddleware, 
-    allowed_hosts=[
-        "https://bb8-nlu*",
-        "https://bb8-assist*"
-    ]
-)
 # app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
+#     TrustedHostMiddleware, 
+#     allowed_hosts=[
+#         "https://bb8-nlu*",
+#         "https://bb8-assist*"
+#     ]
 # )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
