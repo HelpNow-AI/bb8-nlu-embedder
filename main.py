@@ -34,7 +34,14 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://bb8-nlu-sandbox.dev.opsnow.com",
+        "https://bb8-nlu-dev.dev.opsnow.com",
+        "https://bb8-nlu-inferencer-sandbox.dev.opsnow.com",
+        "https://bb8-nlu-inferencer-dev.dev.opsnow.com",
+        "https://bb8-assist-sandbox.dev.opsnow.com",
+        "https://bb8-assist-dev.dev.opsnow.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
