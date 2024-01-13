@@ -37,12 +37,8 @@ app = FastAPI(
 app.add_middleware(
     TrustedHostMiddleware, 
     allowed_hosts=[
-        "https://bb8-nlu-sandbox.dev.opsnow.com",
-        "https://bb8-nlu-dev.dev.opsnow.com",
-        "https://bb8-nlu-inferencer-sandbox.dev.opsnow.com",
-        "https://bb8-nlu-inferencer-dev.dev.opsnow.com",
-        "https://bb8-assist-sandbox.dev.opsnow.com",
-        "https://bb8-assist-dev.dev.opsnow.com"
+        "https://bb8-nlu*",
+        "https://bb8-assist*"
     ]
 )
 # app.add_middleware(
