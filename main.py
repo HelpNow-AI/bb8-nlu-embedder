@@ -3,6 +3,7 @@ import os
 import time
 import datetime
 import traceback
+import gc
 import requests
 # from concurrent import futures
 
@@ -17,6 +18,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
@@ -29,7 +31,7 @@ output_model_dir = "./_output" # trained model
 
 ## FastAPI & CORS (Cross-Origin Resource Sharing) ##
 app = FastAPI(
-    title="helpnow-embedder",
+    title="bb8-nlu-embedder",
     version="0.2.5"
 )
 app.add_middleware(
@@ -45,21 +47,24 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if device.type == "cuda":
     gpu_properties = torch.cuda.get_device_properties(0)
 
-# Load models
+def check_cuda_memory():
+    if device.type == "cuda":
+        current_memory = round(torch.cuda.memory_allocated() / (1024**3), 4)
+        total_memory = round(gpu_properties.total_memory / (1024**3), 4)
+        print(f'>> Usage of Current Memory: {current_memory} GB / {total_memory} GB')
+    
+        gc.collect()
+        torch.cuda.empty_cache()
+    else:
+        print('>> Not using CUDA.')
+
+
+## Load Models ##
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
 assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-
-
-def check_cuda_memory():
-    if device.type == "cuda":
-        current_memory = round(torch.cuda.memory_allocated() / (1024**3), 4)
-        total_memory = round(gpu_properties.total_memory / (1024**3), 4)
-        print(f'Usage of Current Memory: {current_memory} GB / {total_memory} GB')
-    else:
-        print('Not using CUDA.')
 
 
 @app.get('/health')
