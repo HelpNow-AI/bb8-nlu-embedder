@@ -60,11 +60,11 @@ def check_cuda_memory():
 
 
 ## Load Models ##
-nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
-assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
+nlu_embedder = SentenceTransformer('./models/klue-sroberta-base-continue-learning-by-mnr', device=device)
+assist_bi_encoder = FlagModel('./models/bge-base-en-v1.5', 
             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+assist_cross_encoder = FlagReranker('./models/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 
 
 @app.get('/health')
