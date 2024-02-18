@@ -14,4 +14,4 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
 EXPOSE 8000
 
 # Run app.py when the container launches
-CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
+CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000","--workers","2"]
