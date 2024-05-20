@@ -11,6 +11,7 @@ import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from FlagEmbedding import FlagModel, FlagReranker
+from FlagEmbedding import BGEM3FlagModel
 
 
 # fastapi
@@ -60,11 +61,13 @@ def check_cuda_memory():
 
 
 ## Load Models ##
-nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
-assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
-            query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
-            use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+# nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
+# assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
+#             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
+#             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+# assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+assist_bi_encoder = BGEM3FlagModel('BAAI/bge-m3', use_fp16=False)
+assist_cross_encoder = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=False)
 
 
 @app.get('/health')
@@ -114,7 +117,8 @@ def sentence_embedding_batch(item: EmbeddingItem):
 @app.get("/api/assist/sentence-embedding")
 def sentence_embedding(query: str):
     try:
-        embed_vector = assist_bi_encoder.encode_queries(query) # query_instruction_for_retrieval + query 
+        # embed_vector = assist_bi_encoder.encode_queries(query) # query_instruction_for_retrieval + query 
+        embed_vector = assist_bi_encoder.encode(query)['dense_vecs']
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vector = None
@@ -132,7 +136,8 @@ def sentence_embedding_batch(item: EmbeddingItem):
     query_list = [r['text'] for r in data]
 
     try:
-        embed_vectors = assist_bi_encoder.encode(query_list)
+        # embed_vectors = assist_bi_encoder.encode(query_list)
+        embed_vectors = assist_bi_encoder.encode(query_list)['dense_vecs']
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vectors = None
