@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from FlagEmbedding import FlagModel, FlagReranker
-from FlagEmbedding import BGEM3FlagModel
+from FlagEmbedding import BGEM3FlagModel, FlagLLMReranker
 
 
 # fastapi
@@ -67,7 +67,8 @@ def check_cuda_memory():
 #             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 # assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 assist_bi_encoder = BGEM3FlagModel('BAAI/bge-m3', use_fp16=False)
-assist_cross_encoder = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=False)
+# assist_cross_encoder = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=False)
+assist_cross_encoder = FlagLLMReranker('BAAI/bge-reranker-v2-gemma', use_fp16=False)
 
 
 @app.get('/health')
