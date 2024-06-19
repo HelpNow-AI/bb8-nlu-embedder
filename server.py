@@ -1,5 +1,6 @@
 import argparse
 import logging
+import gc
 
 import numpy as np
 import torch
@@ -16,6 +17,21 @@ logger.info("🔥 bb8-embedder by Triton Inferece Server")
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if device.type == "cuda":
+    gpu_properties = torch.cuda.get_device_properties(0)
+
+def check_cuda_memory():
+    if device.type == "cuda":
+        current_memory = round(torch.cuda.memory_allocated() / (1024**3), 4)
+        total_memory = round(gpu_properties.total_memory / (1024**3), 4)
+        print(f'>> Usage of Current Memory: {current_memory} GB / {total_memory} GB')
+    
+        gc.collect()
+        torch.cuda.empty_cache()
+    else:
+        print('>> Not using CUDA.')
+check_cuda_memory()
+
 
 # Load models
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
