@@ -46,7 +46,7 @@ def _infer_fn_nlu(sequence: np.ndarray):
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     sequence = sum(sequence.tolist(), [])
 
-    embed_vectors = nlu_embedder.encode(sequence)
+    embed_vectors = nlu_embedder.encode(sequence, device=device)
 
     return {'embed_vectors': embed_vectors}
 
