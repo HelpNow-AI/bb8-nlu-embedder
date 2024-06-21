@@ -74,23 +74,25 @@ import numba as nb
 @nb.jit(nopython=True)
 def numpy_to_list(vector: np.ndarray) -> list:
     n = vector.shape[0]  # Get the length of the 1D array
-    result = [0.0] * n  # Create a list initialized with 0.0
+    result = []  # Create an empty list to hold the result
 
     for i in range(n):
-        result[i] = float(vector[i])  # Convert each element to float and assign to result list
+        result.append(float(vector[i]))  # Convert each element to float and append to result list
 
     return result  # Return the result as a list
 
 @nb.jit(nopython=True)
 def numpy2d_to_list(vector: np.ndarray) -> list:
-    n, m = vector.shape  # Get the shape of the array
-    result = [[0.0] * m for _ in range(n)]
+    n, m = vector.shape  # Get the shape of the 2D array
+    result = []  # Create an empty list to hold the result
 
     for i in range(n):
+        row = []  # Create an empty list for each row
         for j in range(m):
-            result[i, j] = float(vector[i, j])  # Convert each element to float and assign to result array
+            row.append(float(vector[i, j]))  # Convert each element to float and append to row list
+        result.append(row)  # Append row list to result list
 
-    return result  # Return the result
+    return result  # Return the result as a list of lists
 
 @app.get("/api/nlu/sentence-embedding")
 def sentence_embedding(query):
