@@ -71,74 +71,41 @@ class EmbeddingItem(BaseModel):
 @app.get("/api/nlu/sentence-embedding")
 def sentence_embedding(query):
     try:
-        embed_vector = nlu_embedder.encode(query, device=device)
+        return JSONResponse({'embed_vector': [float(nlu_embedder.encode(query, device=device))]})
     except:
         logger.error(f'{traceback.format_exc()}')
-        embed_vector = None
-
-    embed_vector = [float(v) for v in embed_vector]
-
-    return JSONResponse({'embed_vector': embed_vector})
+        return JSONResponse({'embed_vector': None})
 
 
 @app.post("/api/nlu/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
-    item = item.dict()
-    data = item['data']
-    query_list = [r['text'] for r in data]
-
     try:
-        embed_vectors = nlu_embedder.encode(query_list, device=device)
+        return JSONResponse({'embed_vector': [float(v) for v in nlu_embedder.encode([r['text'] for r in item.dict()['data']], device=device)]})
     except:
         logger.error(f'{traceback.format_exc()}')
-        embed_vectors = None
-
-    for i, row in enumerate(data):
-        row['embed_vector'] = [float(v) for v in embed_vectors[i]]
-
-    return JSONResponse(data)
+        return JSONResponse({"embed_vector" : [None for _ in len(data)]})
 
 
 @app.get("/api/assist/sentence-embedding")
 def sentence_embedding(query: str):
     try:
-        embed_vector = assist_bi_encoder.encode_queries(query) # query_instruction_for_retrieval + query
+        return JSONResponse({'embed_vector': assist_bi_encoder.encode_queries(query)}) # query_instruction_for_retrieval + query
     except:
         logger.error(f'{traceback.format_exc()}')
-        embed_vector = None
-
-    embed_vector = [float(v) for v in embed_vector]
-
-    return JSONResponse({'embed_vector': embed_vector})
+        return JSONResponse({'embed_vector': None})
 
 
 @app.post("/api/assist/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
-    item = item.dict()
-    data = item['data']
-    query_list = [r['text'] for r in data]
-
     try:
-        embed_vectors = assist_bi_encoder.encode(query_list)
+        JSONResponse({'embed_vector' : [float(v) for v in assist_bi_encoder.encode([r['text'] for r in item.dict()['data']])]})
     except:
         logger.error(f'{traceback.format_exc()}')
-        embed_vectors = None
-
-    for i, row in enumerate(data):
-        row['embed_vector'] = [float(v) for v in embed_vectors[i]]
-
-    return JSONResponse(data)
-
+        return JSONResponse({"embed_vector": [None for _ in len(data)]})
 
 @app.post("/api/assist/cross-encoder/similarity-scores")
 def sentence_embedding_batch(item: EmbeddingItem):
-    item = item.dict()
-    data = item['data']
-
-    query_doc_list = [[r['query'], r['passage']] for r in data]
-    similarity_scores = assist_cross_encoder.compute_score(query_doc_list)
-
-    return JSONResponse({"similarity_scores": similarity_scores})
+    return JSONResponse({"similarity_scores": assist_cross_encoder.compute_score([[r['query'], r['passage']] for r in item.dict()['data']])})
 
 
 #===========================
