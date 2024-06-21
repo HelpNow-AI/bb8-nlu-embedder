@@ -70,16 +70,27 @@ class EmbeddingItem(BaseModel):
 
 import numba as nb
 
+# Numba JIT decorator with type hints
 @nb.jit(nopython=True)
 def numpy_to_list(vector: np.ndarray) -> list:
+    n = vector.shape[0]  # Get the length of the 1D array
+    result = [0.0] * n  # Create a list initialized with 0.0
+
+    for i in range(n):
+        result[i] = float(vector[i])  # Convert each element to float and assign to result list
+
+    return result  # Return the result as a list
+
+@nb.jit(nopython=True)
+def numpy2d_to_list(vector: np.ndarray) -> list:
     n, m = vector.shape  # Get the shape of the array
-    result = np.empty((n, m))  # Create an empty numpy array to hold the result
+    result = [[0.0] * m for _ in range(n)]
 
     for i in range(n):
         for j in range(m):
             result[i, j] = float(vector[i, j])  # Convert each element to float and assign to result array
 
-    return result  # Return the result as a numpy array
+    return result  # Return the result
 
 @app.get("/api/nlu/sentence-embedding")
 def sentence_embedding(query):
@@ -93,7 +104,7 @@ def sentence_embedding(query):
 @app.post("/api/nlu/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        return JSONResponse({'embed_vector': numpy_to_list(nlu_embedder.encode([r['text'] for r in item.dict()['data']].astype(float)), device=device)})
+        return JSONResponse({'embed_vector': numpy2d_to_list(nlu_embedder.encode([r['text'] for r in item.dict()['data']].astype(float)), device=device)})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({"embed_vector" : [None for _ in item.dict()['data']]})
@@ -111,7 +122,7 @@ def sentence_embedding(query: str):
 @app.post("/api/assist/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        JSONResponse({'embed_vector' : numpy_to_list(assist_bi_encoder.encode([r['text'] for r in item.dict()['data']]).astype(float))})
+        JSONResponse({'embed_vector' : numpy2d_to_list(assist_bi_encoder.encode([r['text'] for r in item.dict()['data']]).astype(float))})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({"embed_vector": [None for _ in item.dict()['data']]})
