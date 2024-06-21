@@ -71,7 +71,7 @@ class EmbeddingItem(BaseModel):
 import numba as nb
 
 @nb.jit(nopython=True)
-def numpy_to_list(vector):
+def numpy_to_list(vector: np.ndarray) -> list:
     n, m = vector.shape  # Get the shape of the array
     result = np.empty((n, m))  # Create an empty numpy array to hold the result
 
