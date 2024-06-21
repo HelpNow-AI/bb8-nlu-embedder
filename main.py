@@ -83,7 +83,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
         return JSONResponse({'embed_vector': [float(v) for v in nlu_embedder.encode([r['text'] for r in item.dict()['data']], device=device)]})
     except:
         logger.error(f'{traceback.format_exc()}')
-        return JSONResponse({"embed_vector" : [None for _ in len(data)]})
+        return JSONResponse({"embed_vector" : [None for _ in len(item.dict()['data'])]})
 
 
 @app.get("/api/assist/sentence-embedding")
@@ -101,7 +101,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
         JSONResponse({'embed_vector' : [float(v) for v in assist_bi_encoder.encode([r['text'] for r in item.dict()['data']])]})
     except:
         logger.error(f'{traceback.format_exc()}')
-        return JSONResponse({"embed_vector": [None for _ in len(data)]})
+        return JSONResponse({"embed_vector": [None for _ in len(item.dict()['data'])]})
 
 @app.post("/api/assist/cross-encoder/similarity-scores")
 def sentence_embedding_batch(item: EmbeddingItem):
