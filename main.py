@@ -71,7 +71,7 @@ class EmbeddingItem(BaseModel):
 @app.get("/api/nlu/sentence-embedding")
 def sentence_embedding(query):
     try:
-        return JSONResponse({'embed_vector': [float(nlu_embedder.encode(query, device=device))]})
+        return JSONResponse({'embed_vector': nlu_embedder.encode(query, device=device).tolist()})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({'embed_vector': None})
