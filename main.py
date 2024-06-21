@@ -80,7 +80,7 @@ def sentence_embedding(query):
 @app.post("/api/nlu/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        return JSONResponse({'embed_vector': nlu_embedder.encode([r['text'] for r in item.dict()['data']].astype(float), device=device)})
+        return JSONResponse({'embed_vector': nlu_embedder.encode([r['text'] for r in item.dict()['data']].astype(float).tolist(), device=device)})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({"embed_vector" : [None for _ in item.dict()['data']]})
@@ -98,7 +98,7 @@ def sentence_embedding(query: str):
 @app.post("/api/assist/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        JSONResponse({'embed_vector' : assist_bi_encoder.encode([r['text'] for r in item.dict()['data']]).astype(float)})
+        JSONResponse({'embed_vector' : assist_bi_encoder.encode([r['text'] for r in item.dict()['data']]).astype(float).tolist()})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({"embed_vector": [None for _ in item.dict()['data']]})
