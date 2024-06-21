@@ -104,7 +104,7 @@ def sentence_embedding(query):
 @app.post("/api/nlu/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        return JSONResponse({'embed_vector': numpy2d_to_list(nlu_embedder.encode([r['text'] for r in item.dict()['data']].astype(np.float64)), device=device)})
+        return JSONResponse({'embed_vector': numpy2d_to_list(nlu_embedder.encode([r['text'] for r in item.dict()['data']], device=device).astype(np.float64))})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({"embed_vector" : [None for _ in item.dict()['data']]})
