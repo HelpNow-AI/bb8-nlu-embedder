@@ -134,27 +134,27 @@ def sentence_embedding_batch(item: EmbeddingItem):
 
 #===========================
 # CUDA Memory Check 스케쥴러 입니다.
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.interval import IntervalTrigger
-
-def check_cuda_memory():
-    if device.type == "cuda":
-        current_memory = round(torch.cuda.memory_allocated() / (1024 ** 3), 4)
-        total_memory = round(gpu_properties.total_memory / (1024 ** 3), 4)
-        print(f'>> Usage of Current Memory: {current_memory} GB / {total_memory} GB')
-
-        gc.collect()
-        torch.cuda.empty_cache()
-    else:
-        print('>> Not using CUDA.')
-
-scheduler = BackgroundScheduler()
-
-# 스케줄러에 작업 추가 (예: 10초마다 실행)
-scheduler.add_job(check_cuda_memory, IntervalTrigger(seconds=30))
-# 스케줄러 시작
-scheduler.start()
-
-@app.on_event("shutdown")
-def shutdown_event():
-    scheduler.shutdown()
+# from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.triggers.interval import IntervalTrigger
+#
+# def check_cuda_memory():
+#     if device.type == "cuda":
+#         current_memory = round(torch.cuda.memory_allocated() / (1024 ** 3), 4)
+#         total_memory = round(gpu_properties.total_memory / (1024 ** 3), 4)
+#         print(f'>> Usage of Current Memory: {current_memory} GB / {total_memory} GB')
+#
+#         gc.collect()
+#         torch.cuda.empty_cache()
+#     else:
+#         print('>> Not using CUDA.')
+#
+# scheduler = BackgroundScheduler()
+#
+# # 스케줄러에 작업 추가 (예: 10초마다 실행)
+# scheduler.add_job(check_cuda_memory, IntervalTrigger(seconds=30))
+# # 스케줄러 시작
+# scheduler.start()
+#
+# @app.on_event("shutdown")
+# def shutdown_event():
+#     scheduler.shutdown()
