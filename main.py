@@ -50,7 +50,7 @@ if device.type == "cuda":
 
 ## Load Models ##
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
-assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
+assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5',
             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
@@ -101,7 +101,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
 @app.get("/api/assist/sentence-embedding")
 def sentence_embedding(query: str):
     try:
-        embed_vector = assist_bi_encoder.encode_queries(query) # query_instruction_for_retrieval + query 
+        embed_vector = assist_bi_encoder.encode_queries(query) # query_instruction_for_retrieval + query
     except:
         logger.error(f'{traceback.format_exc()}')
         embed_vector = None
@@ -147,7 +147,6 @@ def sentence_embedding_batch(item: EmbeddingItem):
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-
 def check_cuda_memory():
     if device.type == "cuda":
         current_memory = round(torch.cuda.memory_allocated() / (1024 ** 3), 4)
@@ -158,6 +157,8 @@ def check_cuda_memory():
         torch.cuda.empty_cache()
     else:
         print('>> Not using CUDA.')
+
+scheduler = BackgroundScheduler()
 
 # 스케줄러에 작업 추가 (예: 10초마다 실행)
 scheduler.add_job(check_cuda_memory, IntervalTrigger(seconds=30))
