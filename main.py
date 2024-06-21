@@ -80,10 +80,10 @@ def sentence_embedding(query):
 @app.post("/api/nlu/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        return JSONResponse({'embed_vector': [float(v) for v in nlu_embedder.encode([r['text'] for r in item.dict()['data']], device=device)]})
+        return JSONResponse({'embed_vector': nlu_embedder.encode([r['text'] for r in item.dict()['data']].astype(float), device=device)})
     except:
         logger.error(f'{traceback.format_exc()}')
-        return JSONResponse({"embed_vector" : [None for _ in len(item.dict()['data'])]})
+        return JSONResponse({"embed_vector" : [None for _ in item.dict()['data']]})
 
 
 @app.get("/api/assist/sentence-embedding")
@@ -98,10 +98,10 @@ def sentence_embedding(query: str):
 @app.post("/api/assist/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        JSONResponse({'embed_vector' : [float(v) for v in assist_bi_encoder.encode([r['text'] for r in item.dict()['data']])]})
+        JSONResponse({'embed_vector' : assist_bi_encoder.encode([r['text'] for r in item.dict()['data']]).astype(float)})
     except:
         logger.error(f'{traceback.format_exc()}')
-        return JSONResponse({"embed_vector": [None for _ in len(item.dict()['data'])]})
+        return JSONResponse({"embed_vector": [None for _ in item.dict()['data']]})
 
 @app.post("/api/assist/cross-encoder/similarity-scores")
 def sentence_embedding_batch(item: EmbeddingItem):
