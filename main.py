@@ -74,30 +74,28 @@ import numba as nb
 @nb.jit(nopython=True)
 def numpy_to_list(vector: np.ndarray) -> list:
     n = vector.shape[0]  # Get the length of the 1D array
-    result = []  # Create an empty list to hold the result
+    result = [0.0] * n  # Initialize a list with float elements
 
     for i in range(n):
-        result.append(float(vector[i]))  # Convert each element to float and append to result list
+        result[i] = float(vector[i])  # Convert each element to float and assign to result list
 
     return result  # Return the result as a list
 
 @nb.jit(nopython=True)
 def numpy2d_to_list(vector: np.ndarray) -> list:
-    n, m = vector.shape  # Get the shape of the 2D array
-    result = []  # Create an empty list to hold the result
+    n, m = vector.shape  # Get the shape of the array
+    result = [[0.0] * m for _ in range(n)]  # Initialize a 2D list with float elements
 
     for i in range(n):
-        row = []  # Create an empty list for each row
         for j in range(m):
-            row.append(float(vector[i, j]))  # Convert each element to float and append to row list
-        result.append(row)  # Append row list to result list
+            result[i][j] = float(vector[i, j])  # Convert each element to float and assign to result array
 
     return result  # Return the result as a list of lists
 
 @app.get("/api/nlu/sentence-embedding")
 def sentence_embedding(query):
     try:
-        return JSONResponse({'embed_vector': numpy_to_list(nlu_embedder.encode(query, device=device))})
+        return JSONResponse({'embed_vector': numpy_to_list(nlu_embedder.encode(query, device=device).astype(np.float64))})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({'embed_vector': None})
@@ -106,7 +104,7 @@ def sentence_embedding(query):
 @app.post("/api/nlu/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        return JSONResponse({'embed_vector': numpy2d_to_list(nlu_embedder.encode([r['text'] for r in item.dict()['data']].astype(float)), device=device)})
+        return JSONResponse({'embed_vector': numpy2d_to_list(nlu_embedder.encode([r['text'] for r in item.dict()['data']].astype(float).astype(np.float64)), device=device)})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({"embed_vector" : [None for _ in item.dict()['data']]})
@@ -115,7 +113,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
 @app.get("/api/assist/sentence-embedding")
 def sentence_embedding(query: str):
     try:
-        return JSONResponse({'embed_vector': numpy_to_list(assist_bi_encoder.encode_queries(query))}) # query_instruction_for_retrieval + query
+        return JSONResponse({'embed_vector': numpy_to_list(assist_bi_encoder.encode_queries(query).astype(np.float64))}) # query_instruction_for_retrieval + query
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({'embed_vector': None})
@@ -124,7 +122,7 @@ def sentence_embedding(query: str):
 @app.post("/api/assist/sentence-embedding-batch")
 def sentence_embedding_batch(item: EmbeddingItem):
     try:
-        JSONResponse({'embed_vector' : numpy2d_to_list(assist_bi_encoder.encode([r['text'] for r in item.dict()['data']]).astype(float))})
+        JSONResponse({'embed_vector' : numpy2d_to_list(assist_bi_encoder.encode([r['text'] for r in item.dict()['data']]).astype(np.float64))})
     except:
         logger.error(f'{traceback.format_exc()}')
         return JSONResponse({"embed_vector": [None for _ in item.dict()['data']]})
