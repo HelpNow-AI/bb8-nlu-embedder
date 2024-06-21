@@ -77,7 +77,7 @@ def numpy_to_list(vector):
 
     for i in range(n):
         for j in range(m):
-            result[i, j] = float(embed_vectors[i, j])  # Convert each element to float and assign to result array
+            result[i, j] = float(vector[i, j])  # Convert each element to float and assign to result array
 
     return result  # Return the result as a numpy array
 
