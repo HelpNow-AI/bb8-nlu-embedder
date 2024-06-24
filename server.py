@@ -9,7 +9,8 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 # from FlagEmbedding import FlagModel, FlagReranker
 
 from pytriton.decorators import batch
-from pytriton.model_config import ModelConfig, Tensor
+from pytriton.model_config import ModelConfig, Tensor, DeviceKind
+from pytriton.model_config.triton_model_config import TritonModelConfig
 from pytriton.triton import Triton
 
 from _config import logger
@@ -124,7 +125,8 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
-            config=ModelConfig(max_batch_size=args.max_batch_size),
+            # config=ModelConfig(max_batch_size=args.max_batch_size),
+            config=TritonModelConfig(model_name="bb8-embedder-nlu", max_batch_size=args.max_batch_size, instance_group={DeviceKind.KIND_GPU: 0}),
         )
         triton.bind(
             model_name="bb8-embedder-assist-biencoder-query",
