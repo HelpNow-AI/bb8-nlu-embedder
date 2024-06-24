@@ -45,6 +45,8 @@ assist_bi_encoder = SentenceTransformer('BAAI/bge-base-en-v1.5', device=device)
 
 assist_cross_encoder_tokenizer = AutoTokenizer.from_pretrained('BAAI/bge-reranker-base')
 assist_cross_encoder = AutoModelForSequenceClassification.from_pretrained('BAAI/bge-reranker-base')
+assist_cross_encoder.to(device)
+assist_cross_encoder.eval()
 
 
 
@@ -92,6 +94,7 @@ def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
     
     with torch.no_grad():
         inputs = assist_cross_encoder_tokenizer(query_passage_list, padding=True, truncation=True, return_tensors="pt", max_length=512)
+        inputs = inputs.to(device)
         similarity_scores = assist_cross_encoder(**inputs, return_dict=True).logits.view(-1,).float()
 
     return {'similarity_scores': similarity_scores}
