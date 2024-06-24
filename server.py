@@ -11,7 +11,8 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 from pytriton.decorators import batch
 from pytriton.model_config import ModelConfig, Tensor, DeviceKind
 from pytriton.model_config.triton_model_config import TritonModelConfig
-from pytriton.triton import Triton
+from pytriton.model_config.parser import ModelConfigParser
+from pytriton.triton import Triton, TritonConfig
 
 from _config import logger
 
@@ -113,8 +114,7 @@ def main():
     )
     args = parser.parse_args()
 
-
-    with Triton() as triton:
+    with Triton(config= TritonConfig(allow_gpu_metrics=True)) as triton:
         logger.info("Loading embedding model.")
         triton.bind(
             model_name="bb8-embedder-nlu",
@@ -126,12 +126,14 @@ def main():
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
             # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=TritonModelConfig(model_name="bb8-embedder-nlu", max_batch_size=args.max_batch_size, instance_group={DeviceKind.KIND_GPU: 0}),
+            # config=TritonModelConfig(model_name="bb8-embedder-nlu", max_batch_size=args.max_batch_size, instance_group={DeviceKind.KIND_GPU: 0}),
+            config=ModelConfigParser.from_file('./model_config/bb8-embedder-nlu.pbtxt')
         )
         triton.bind(
             model_name="bb8-embedder-assist-biencoder-query",
             infer_func=_infer_fn_assist_biencoder_query,
             inputs=[
+                
                 Tensor(name="sequence", dtype=bytes, shape=(1,)),
             ],
             outputs=[
