@@ -1,5 +1,6 @@
 import argparse
 import logging
+from pathlib import Path
 import gc
 
 import numpy as np
@@ -127,7 +128,7 @@ def main():
             ],
             # config=ModelConfig(max_batch_size=args.max_batch_size),
             # config=TritonModelConfig(model_name="bb8-embedder-nlu", max_batch_size=args.max_batch_size, instance_group={DeviceKind.KIND_GPU: 0}),
-            config=ModelConfigParser.from_file('./model_config/bb8-embedder-nlu.pbtxt')
+            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt'))
         )
         triton.bind(
             model_name="bb8-embedder-assist-biencoder-query",
