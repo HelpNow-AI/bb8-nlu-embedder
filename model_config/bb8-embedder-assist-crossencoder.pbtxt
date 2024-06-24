@@ -1,12 +1,17 @@
-name: "bb8-embedder-nlu"
+name: "bb8-embedder-assist-crossencoder"
 max_batch_size: 32
 input {
-  name: "sequence"
+  name: "queries"
+  data_type: TYPE_STRING
+  dims: 1
+}
+input {
+  name: "passages"
   data_type: TYPE_STRING
   dims: 1
 }
 output {
-  name: "embed_vectors"
+  name: "similarity_scores"
   data_type: TYPE_STRING
   dims: -1
 }

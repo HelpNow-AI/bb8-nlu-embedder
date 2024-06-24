@@ -1,4 +1,4 @@
-name: "bb8-embedder-nlu"
+name: "bb8-embedder-assist-biencoder-passage"
 max_batch_size: 32
 input {
   name: "sequence"

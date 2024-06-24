@@ -127,7 +127,6 @@ def main():
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
             # config=ModelConfig(max_batch_size=args.max_batch_size),
-            # config=TritonModelConfig(model_name="bb8-embedder-nlu", max_batch_size=args.max_batch_size, instance_group={DeviceKind.KIND_GPU: 0}),
             config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt'))
         )
         triton.bind(
@@ -140,7 +139,8 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
-            config=ModelConfig(max_batch_size=args.max_batch_size),
+            # config=ModelConfig(max_batch_size=args.max_batch_size),
+            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query'))
         )
         triton.bind(
             model_name="bb8-embedder-assist-biencoder-passage",
@@ -151,7 +151,8 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
-            config=ModelConfig(max_batch_size=args.max_batch_size),
+            # config=ModelConfig(max_batch_size=args.max_batch_size),
+            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage'))
         )
         triton.bind(
             model_name="bb8-embedder-assist-crossencoder",
@@ -163,7 +164,8 @@ def main():
             outputs=[
                 Tensor(name="similarity_scores", dtype=bytes, shape=(-1,)),
             ],
-            config=ModelConfig(max_batch_size=args.max_batch_size),
+            # config=ModelConfig(max_batch_size=args.max_batch_size),
+            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt'))
         )
         logger.info("Serving inference")
         triton.serve()
