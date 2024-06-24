@@ -140,7 +140,7 @@ def main():
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
             # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query'))
+            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt'))
         )
         triton.bind(
             model_name="bb8-embedder-assist-biencoder-passage",
@@ -152,7 +152,7 @@ def main():
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
             # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage'))
+            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt'))
         )
         triton.bind(
             model_name="bb8-embedder-assist-crossencoder",
