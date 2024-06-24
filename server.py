@@ -4,8 +4,9 @@ import gc
 
 import numpy as np
 import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from sentence_transformers import SentenceTransformer, CrossEncoder
-from FlagEmbedding import FlagModel, FlagReranker
+# from FlagEmbedding import FlagModel, FlagReranker
 
 from pytriton.decorators import batch
 from pytriton.model_config import ModelConfig, Tensor
@@ -35,10 +36,16 @@ check_cuda_memory()
 
 # Load models
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
-assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
-            query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
-            use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+# assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
+#             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
+#             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+# assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
+
+assist_bi_encoder = SentenceTransformer('BAAI/bge-base-en-v1.5', device=device)
+
+assist_cross_encoder_tokenizer = AutoTokenizer.from_pretrained('BAAI/bge-reranker-base')
+assist_cross_encoder = AutoModelForSequenceClassification.from_pretrained('BAAI/bge-reranker-base')
+
 
 
 @batch
@@ -55,7 +62,9 @@ def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     sequence = sum(sequence.tolist(), [])
 
-    embed_vectors = assist_bi_encoder.encode_queries(sequence)
+    # embed_vectors = assist_bi_encoder.encode_queries(sequence)
+    instruction = "Represent this sentence for searching relevant passages: "
+    embed_vectors = assist_bi_encoder.encode([instruction+q for q in sequence], normalize_embeddings=True, device=device)
 
     return {'embed_vectors': embed_vectors}
 
@@ -65,7 +74,9 @@ def _infer_fn_assist_biencoder_passage(sequence: np.ndarray):
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     sequence = sum(sequence.tolist(), [])
 
-    embed_vectors = assist_bi_encoder.encode(sequence)
+    # embed_vectors = assist_bi_encoder.encode(sequence)
+    embed_vectors = assist_bi_encoder.encode(sequence, normalize_embeddings=True, device=device)
+    
 
     return {'embed_vectors': embed_vectors}
 
@@ -77,7 +88,11 @@ def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
     passages = sum(passages.tolist(), [])
 
     query_passage_list = [[query, passage] for query, passage in zip(queries, passages)]
-    similarity_scores = assist_cross_encoder.compute_score(query_passage_list)
+    # similarity_scores = assist_cross_encoder.compute_score(query_passage_list)
+    
+    with torch.no_grad():
+        inputs = assist_cross_encoder_tokenizer(query_passage_list, padding=True, truncation=True, return_tensors="pt", max_length=512)
+        similarity_scores = assist_cross_encoder(**inputs, return_dict=True).logits.view(-1,).float()
 
     return {'similarity_scores': similarity_scores}
 
