@@ -8,6 +8,7 @@ import requests
 # from concurrent import futures
 
 import numpy as np
+import numba as nb
 import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from FlagEmbedding import FlagModel, FlagReranker
@@ -42,6 +43,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@nb.jit(nopython=True)
+def numpy_to_list(vector: np.ndarray) -> list:
+    n = vector.shape[0]  # Get the length of the 1D array
+    result = [0.0] * n  # Initialize a list with float elements
+
+    for i in range(n):
+        result[i] = float(vector[i])  # Convert each element to float and assign to result list
+
+    return result  # Return the result as a list
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if device.type == "cuda":
@@ -75,9 +85,9 @@ def sentence_embedding(query):
         logger.error(f'{traceback.format_exc()}')
         embed_vector = None
 
-    embed_vector = [float(v) for v in embed_vector]
+    #embed_vector = [float(v) for v in embed_vector]
 
-    return JSONResponse({'embed_vector': embed_vector})
+    return JSONResponse({'embed_vector': numpy_to_list(embed_vector)})
 
 
 @app.post("/api/nlu/sentence-embedding-batch")
@@ -106,9 +116,9 @@ def sentence_embedding(query: str):
         logger.error(f'{traceback.format_exc()}')
         embed_vector = None
 
-    embed_vector = [float(v) for v in embed_vector]
+    #embed_vector = [float(v) for v in embed_vector]
 
-    return JSONResponse({'embed_vector': embed_vector})
+    return JSONResponse({'embed_vector': numpy_to_list(embed_vector)})
 
 
 @app.post("/api/assist/sentence-embedding-batch")
@@ -124,7 +134,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
         embed_vectors = None
 
     for i, row in enumerate(data):
-        row['embed_vector'] = [float(v) for v in embed_vectors[i]]
+        row['embed_vector'] = numpy_to_list(embed_vectors[i])
 
     return JSONResponse(data)
 
