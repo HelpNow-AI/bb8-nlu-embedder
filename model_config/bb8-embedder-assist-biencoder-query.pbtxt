@@ -1,20 +1,24 @@
 name: "bb8-embedder-assist-biencoder-query"
 max_batch_size: 32
-input {
-  name: "sequence"
-  data_type: TYPE_STRING
-  dims: 1
-}
-output {
-  name: "embed_vectors"
-  data_type: TYPE_STRING
-  dims: -1
-}
-instance_group {
-  count: 1
-  kind: KIND_GPU
-  gpus: [ 0 ]
-}
-dynamic_batching {
-}
+input [
+  {
+    name: "sequence"
+    data_type: TYPE_STRING
+    dims: 1
+  }
+]  
+output [
+  {
+    name: "embed_vectors"
+    data_type: TYPE_STRING
+    dims: -1
+  }
+]
+instance_group [
+  {
+    count: 1
+    kind: KIND_GPU
+    gpus: [ 0 ]
+  }
+]
 backend: "python"
