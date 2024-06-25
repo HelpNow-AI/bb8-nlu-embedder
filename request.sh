@@ -21,11 +21,15 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "data": [
-    {"text": "hello, my name is jaehyeong."}, {"text": "I really want to go home."}, {"text": "Sorry.. But, I hate you."}, {"text": "hahahahahah, blablablabla"}, 
-    {"text": "hello, my name is jaehyeong."}, {"text": "I really want to go home."}, {"text": "Sorry.. But, I hate you."}, {"text": "hahahahahah, blablablabla"},
-    {"text": "hello, my name is jaehyeong."}, {"text": "I really want to go home."}, {"text": "Sorry.. But, I hate you."}, {"text": "hahahahahah, blablablabla"},
-    {"text": "hello, my name is jaehyeong."}, {"text": "I really want to go home."}, {"text": "Sorry.. But, I hate you."}, {"text": "hahahahahah, blablablabla"},
-    {"text": "hello, my name is jaehyeong."}, {"text": "I really want to go home."}, {"text": "Sorry.. But, I hate you."}, {"text": "hahahahahah, blablablabla"}
+    {"text": "The sun dips below the horizon, painting the sky orange."}, {"text": "A gentle breeze whispers through the autumn leaves."}, 
+    {"text": "The moon casts a silver glow on the tranquil lake."}, {"text": "A solitary lighthouse stands guard on the rocky shore."}, 
+    {"text": "The city awakens as morning light filters through the streets."}, {"text": "Stars twinkle in the velvety blanket of the night sky."}, 
+    {"text": "The aroma of fresh coffee fills the cozy kitchen."}, {"text": "A curious kitten pounces on a fluttering butterfly."}, 
+    {"text": "The sun dips below the horizon, painting the sky orange."}, {"text": "A gentle breeze whispers through the autumn leaves."}, 
+    {"text": "The moon casts a silver glow on the tranquil lake."}, {"text": "A solitary lighthouse stands guard on the rocky shore."}, 
+    {"text": "The city awakens as morning light filters through the streets."}, {"text": "Stars twinkle in the velvety blanket of the night sky."}, 
+    {"text": "The aroma of fresh coffee fills the cozy kitchen."}, {"text": "A curious kitten pounces on a fluttering butterfly.The sun dips below the horizon, painting the sky orange."}, 
+    {"text": "A gentle breeze whispers through the autumn leaves."}, {"text": "The moon casts a silver glow on the tranquil lake."}, {"text": "A solitary lighthouse stands guard on the rocky shore."}
   ]
 }' > /dev/null 2>&1 
 
@@ -58,11 +62,26 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "data": [
-    "hello, my name is jaehyeong.", "I really want to go home.", "Sorry.. But, I hate you.", "hahahahahah, blablablabla", 
-    "hello, my name is jaehyeong.", "I really want to go home.", "Sorry.. But, I hate you.", "hahahahahah, blablablabla",
-    "hello, my name is jaehyeong.", "I really want to go home.", "Sorry.. But, I hate you.", "hahahahahah, blablablabla",
-    "hello, my name is jaehyeong.", "I really want to go home.", "Sorry.. But, I hate you.", "hahahahahah, blablablabla",
-    "hello, my name is jaehyeong.", "I really want to go home.", "Sorry.. But, I hate you.", "hahahahahah, blablablabla"
+    "The sun dips below the horizon, painting the sky orange.",
+    "A gentle breeze whispers through the autumn leaves.",
+    "The moon casts a silver glow on the tranquil lake.",
+    "A solitary lighthouse stands guard on the rocky shore.",
+    "The city awakens as morning light filters through the streets.",
+    "Stars twinkle in the velvety blanket of the night sky.",
+    "The aroma of fresh coffee fills the cozy kitchen.",
+    "A curious kitten pounces on a fluttering butterfly.",
+    "The sun dips below the horizon, painting the sky orange.",
+    "A gentle breeze whispers through the autumn leaves.",
+    "The moon casts a silver glow on the tranquil lake.",
+    "A solitary lighthouse stands guard on the rocky shore.",
+    "The city awakens as morning light filters through the streets.",
+    "Stars twinkle in the velvety blanket of the night sky.",
+    "The aroma of fresh coffee fills the cozy kitchen.",
+    "A curious kitten pounces on a fluttering butterfly."
+    "The sun dips below the horizon, painting the sky orange.",
+    "A gentle breeze whispers through the autumn leaves.",
+    "The moon casts a silver glow on the tranquil lake.",
+    "A solitary lighthouse stands guard on the rocky shore.",
   ]
 }' > /dev/null 2>&1
 
