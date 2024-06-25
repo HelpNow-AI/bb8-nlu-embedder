@@ -37,10 +37,10 @@ class BentoHttpUser(HttpUser):
         rate for the load test from the Web UI and start swarming.
     """
     
-    @task
-    def assist_sentence_embedding(self):
-        random_number = random.randint(1, 8)
-        self.client.post("/api/assist/sentence-embedding", json={"query": SAMPLE_SENTENCES[:random_number]})
+    # @task
+    # def assist_sentence_embedding(self):
+    #     random_number = random.randint(1, len(SAMPLE_SENTENCES))
+    #     self.client.post("/api/assist/sentence-embedding", json={"query": SAMPLE_SENTENCES[random_number]})
 
     @task
     def assist_sentence_embedding_batch(self):
