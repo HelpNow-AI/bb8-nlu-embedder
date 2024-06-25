@@ -1,4 +1,4 @@
-service: "service:SentenceTransformers"
+service: "service:ServiceEmbedder"
 labels:
   owner: helpnow-ai
   project: bb8
