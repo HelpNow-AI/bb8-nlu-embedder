@@ -74,13 +74,13 @@ def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
     return {'embed_vectors': embed_vectors}
 
 
-@batch
-def _infer_fn_assist_biencoder_passage(sequence: np.ndarray):
-    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
-    sequence = sum(sequence.tolist(), [])
-
-    # embed_vectors = assist_bi_encoder.encode(sequence)
-    embed_vectors = assist_bi_encoder.encode(sequence, normalize_embeddings=True, device=device)
+# @batch
+# def _infer_fn_assist_biencoder_passage(sequence: np.ndarray):
+#     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
+#     sequence = sum(sequence.tolist(), [])
+#
+#     # embed_vectors = assist_bi_encoder.encode(sequence)
+#     embed_vectors = assist_bi_encoder.encode(sequence, normalize_embeddings=True, device=device)
     
 
     return {'embed_vectors': embed_vectors}
