@@ -124,7 +124,7 @@ def main():
                 Tensor(name="sequence", dtype=bytes, shape=(-1,)),
             ],
             outputs=[
-                Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
             config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
@@ -138,7 +138,7 @@ def main():
                 Tensor(name="sequence", dtype=bytes, shape=(-1,)),
             ],
             outputs=[
-                Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
             config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
@@ -151,7 +151,7 @@ def main():
                 Tensor(name="sequence", dtype=bytes, shape=(-1,)),
             ],
             outputs=[
-                Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
             config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
@@ -165,7 +165,7 @@ def main():
                 Tensor(name="passages", dtype=bytes, shape=(-1,)),
             ],
             outputs=[
-                Tensor(name="similarity_scores", dtype=bytes, shape=(-1,)),
+                Tensor(name="similarity_scores", dtype=np.float32, shape=(-1,)),
             ],
             config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt')),
