@@ -98,9 +98,9 @@ def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
     with torch.no_grad():
         inputs = assist_cross_encoder_tokenizer(query_passage_list, padding=True, truncation=True, return_tensors="pt", max_length=512)
         inputs = inputs.to(device)
-        similarity_scores = assist_cross_encoder(**inputs, return_dict=True).logits.view(-1,).float()
+        similarity_scores = assist_cross_encoder(**inputs, return_dict=True).logits
 
-    return {'similarity_scores': similarity_scores}
+    return {'similarity_scores': similarity_scores.cpu().numpy()}
 
 
 
@@ -109,7 +109,7 @@ def main():
     parser.add_argument(
         "--max-batch-size",
         type=int,
-        default=10000,
+        default=128,
         help="Batch size of request.",
         required=False,
     )
@@ -121,13 +121,13 @@ def main():
             model_name="bb8-embedder-nlu",
             infer_func=_infer_fn_nlu,
             inputs=[
-                Tensor(name="sequence", dtype=bytes, shape=(1,)),
+                Tensor(name="sequence", dtype=bytes, shape=(-1,)),
             ],
             outputs=[
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
-            # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
             strict=True
         )
         triton.bind(
@@ -135,40 +135,40 @@ def main():
             infer_func=_infer_fn_assist_biencoder_query,
             inputs=[
                 
-                Tensor(name="sequence", dtype=bytes, shape=(1,)),
+                Tensor(name="sequence", dtype=bytes, shape=(-1,)),
             ],
             outputs=[
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
-            # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
             strict=True
         )
         triton.bind(
             model_name="bb8-embedder-assist-biencoder-passage",
             infer_func=_infer_fn_assist_biencoder_passage,
             inputs=[
-                Tensor(name="sequence", dtype=bytes, shape=(1,)),
+                Tensor(name="sequence", dtype=bytes, shape=(-1,)),
             ],
             outputs=[
                 Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
             ],
-            # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
             strict=True
         )
         triton.bind(
             model_name="bb8-embedder-assist-crossencoder",
             infer_func=_infer_fn_assist_crossencoder,
             inputs=[
-                Tensor(name="queries", dtype=bytes, shape=(1,)),
-                Tensor(name="passages", dtype=bytes, shape=(1,)),
+                Tensor(name="queries", dtype=bytes, shape=(-1,)),
+                Tensor(name="passages", dtype=bytes, shape=(-1,)),
             ],
             outputs=[
                 Tensor(name="similarity_scores", dtype=bytes, shape=(-1,)),
             ],
-            # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt')),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt')),
             strict=True
         )
         logger.info("Serving inference")
