@@ -144,19 +144,19 @@ def main():
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
             strict=True
         )
-        triton.bind(
-            model_name="bb8-embedder-assist-biencoder-passage",
-            infer_func=_infer_fn_assist_biencoder_passage,
-            inputs=[
-                Tensor(name="sequence", dtype=bytes, shape=(-1,)),
-            ],
-            outputs=[
-                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
-            ],
-            config=ModelConfig(max_batch_size=args.max_batch_size),
-            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
-            strict=True
-        )
+        # triton.bind(
+        #     model_name="bb8-embedder-assist-biencoder-passage",
+        #     infer_func=_infer_fn_assist_biencoder_passage,
+        #     inputs=[
+        #         Tensor(name="sequence", dtype=bytes, shape=(-1,)),
+        #     ],
+        #     outputs=[
+        #         Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
+        #     ],
+        #     config=ModelConfig(max_batch_size=args.max_batch_size),
+        #     #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
+        #     strict=True
+        # )
         triton.bind(
             model_name="bb8-embedder-assist-crossencoder",
             infer_func=_infer_fn_assist_crossencoder,
