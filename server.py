@@ -193,3 +193,7 @@ def main():
         )
         logger.info("Serving inference")
         triton.serve()
+
+
+if __name__ == "__main__":
+    main()
