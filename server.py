@@ -115,6 +115,9 @@ def main():
     )
     args = parser.parse_args()
 
+    from typing import Dict, Optional
+    from pytriton.model_config.common import QueuePolicy
+
 
     class DynamicBatcher:
         max_queue_delay_microseconds: int = 100
