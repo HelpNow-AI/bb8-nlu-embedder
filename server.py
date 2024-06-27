@@ -17,6 +17,9 @@ from pytriton.triton import Triton, TritonConfig
 
 from _config import logger
 
+import gzip
+import base64
+
 logger.info("🔥 bb8-embedder by Triton Inferece Server")
 
 
@@ -55,6 +58,9 @@ assist_cross_encoder.eval()
 
 @batch
 def _infer_fn_nlu(sequence: np.ndarray):
+    print(sequence)
+    sequence = [gzip.decompress(s).decode("utf-8") for s in sequence]
+    print(sequence)
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     sequence = sum(sequence.tolist(), [])
 
