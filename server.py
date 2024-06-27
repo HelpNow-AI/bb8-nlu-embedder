@@ -193,20 +193,3 @@ def main():
         )
         logger.info("Serving inference")
         triton.serve()
-
-
-if __name__ == "__main__":
-    import multiprocessing
-    # 워커 개수 설정
-    num_workers = 3
-
-    # 워커 프로세스 시작
-    processes = []
-    for _ in range(num_workers):
-        process = multiprocessing.Process(target=main)
-        process.start()
-        processes.append(process)
-
-    # 모든 프로세스가 종료될 때까지 대기
-    for process in processes:
-        process.join()
