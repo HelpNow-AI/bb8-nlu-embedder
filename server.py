@@ -146,7 +146,7 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig()#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
             strict=True
         )
@@ -160,7 +160,7 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig()#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
             strict=True
         )
@@ -187,7 +187,7 @@ def main():
             outputs=[
                 Tensor(name="similarity_scores", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig()#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt')),
             strict=True
         )
