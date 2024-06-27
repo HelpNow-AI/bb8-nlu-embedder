@@ -119,20 +119,20 @@ def main():
     from pytriton.model_config.common import QueuePolicy
 
 
-    class DynamicBatcher:
-        max_queue_delay_microseconds: int = 100
-        preferred_batch_size: Optional[list] = [32]
-        preserve_ordering: bool = False
-        priority_levels: int = 0
-        default_priority_level: int = 0
-        default_queue_policy: Optional[QueuePolicy] = None
-        priority_queue_policy: Optional[Dict[int, QueuePolicy]] = None
+    # class DynamicBatcher:
+    #     max_queue_delay_microseconds: int = 100
+    #     preferred_batch_size: Optional[list] = [32]
+    #     preserve_ordering: bool = False
+    #     priority_levels: int = 0
+    #     default_priority_level: int = 0
+    #     default_queue_policy: Optional[QueuePolicy] = None
+    #     priority_queue_policy: Optional[Dict[int, QueuePolicy]] = None
 
-    class ModelConfig:
-        batching: bool = True
-        max_batch_size: int = 128
-        batcher: DynamicBatcher = DynamicBatcher()
-        response_cache: bool = False
+    # class ModelConfig:
+    #     batching: bool = True
+    #     max_batch_size: int = 128
+    #     batcher: DynamicBatcher = DynamicBatcher()
+    #     response_cache: bool = False
 
 
     with Triton(config= TritonConfig(allow_gpu_metrics=True)) as triton:
@@ -146,12 +146,25 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
             strict=True
         )
         triton.bind(
-            model_name="bb8-embedder-assist-biencoder-query",
+            model_name="bb8-embedder-nlu-batch",
+            infer_func=_infer_fn_nlu,
+            inputs=[
+                Tensor(name="sequence", dtype=bytes, shape=(-1,)),
+            ],
+            outputs=[
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
+            ],
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            # config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
+            strict=True
+        )
+        triton.bind(
+            model_name="bb8-embedder-assist-biencoder",
             infer_func=_infer_fn_assist_biencoder_query,
             inputs=[
                 
@@ -160,23 +173,24 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
             strict=True
         )
-        # triton.bind(
-        #     model_name="bb8-embedder-assist-biencoder-passage",
-        #     infer_func=_infer_fn_assist_biencoder_passage,
-        #     inputs=[
-        #         Tensor(name="sequence", dtype=bytes, shape=(-1,)),
-        #     ],
-        #     outputs=[
-        #         Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
-        #     ],
-        #     config=ModelConfig(max_batch_size=args.max_batch_size),
-        #     #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
-        #     strict=True
-        # )
+
+        triton.bind(
+            model_name="bb8-embedder-assist-biencoder-batch",
+            infer_func=_infer_fn_assist_biencoder_query,
+            inputs=[
+                Tensor(name="sequence", dtype=bytes, shape=(-1,)),
+            ],
+            outputs=[
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
+            ],
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
+            strict=True
+        )
         triton.bind(
             model_name="bb8-embedder-assist-crossencoder",
             infer_func=_infer_fn_assist_crossencoder,
@@ -187,7 +201,7 @@ def main():
             outputs=[
                 Tensor(name="similarity_scores", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt')),
             strict=True
         )
