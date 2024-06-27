@@ -125,20 +125,20 @@ def main():
     from pytriton.model_config.common import QueuePolicy
 
 
-    class DynamicBatcher:
-        max_queue_delay_microseconds: int = 100
-        preferred_batch_size: Optional[list] = [128,512,1024]
-        preserve_ordering: bool = False
-        priority_levels: int = 0
-        default_priority_level: int = 0
-        default_queue_policy: Optional[QueuePolicy] = None
-        priority_queue_policy: Optional[Dict[int, QueuePolicy]] = None
-
-    class ModelConfig:
-        batching: bool = True
-        max_batch_size: int = 1024
-        batcher: DynamicBatcher = DynamicBatcher()
-        response_cache: bool = False
+    # class DynamicBatcher:
+    #     max_queue_delay_microseconds: int = 100
+    #     preferred_batch_size: Optional[list] = [128,512,1024]
+    #     preserve_ordering: bool = False
+    #     priority_levels: int = 0
+    #     default_priority_level: int = 0
+    #     default_queue_policy: Optional[QueuePolicy] = None
+    #     priority_queue_policy: Optional[Dict[int, QueuePolicy]] = None
+    #
+    # class ModelConfig:
+    #     batching: bool = True
+    #     max_batch_size: int = 1024
+    #     batcher: DynamicBatcher = DynamicBatcher()
+    #     response_cache: bool = False
 
 
     with Triton(config= TritonConfig(allow_gpu_metrics=True)) as triton:
@@ -152,7 +152,7 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
             strict=True
         )
@@ -165,7 +165,7 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
             # config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
             strict=True
         )
@@ -179,7 +179,7 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
             strict=True
         )
@@ -193,7 +193,7 @@ def main():
             outputs=[
                 Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
             strict=True
         )
@@ -207,7 +207,7 @@ def main():
             outputs=[
                 Tensor(name="similarity_scores", dtype=np.float32, shape=(-1,)),
             ],
-            config=ModelConfig(),#(max_batch_size=args.max_batch_size),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
             #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt')),
             strict=True
         )
