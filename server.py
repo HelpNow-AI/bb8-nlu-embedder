@@ -70,15 +70,18 @@ def _infer_fn_nlu(sequence: np.ndarray):
 
 @batch
 def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
-    print(sequence)
-    sequence = [gzip.decompress(s).decode("utf-8") for s in sequence]
-    print(sequence)
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     sequence = sum(sequence.tolist(), [])
 
+    new_sequence = []
+    for s in sequence:
+        s = base64.b64decode(s.encode("utf-8"))
+        s = gzip.decompress(s)
+        new_sequence.append(s.decode("utf-8"))
+
     # embed_vectors = assist_bi_encoder.encode_queries(sequence)
     instruction = "Represent this sentence for searching relevant passages: "
-    embed_vectors = assist_bi_encoder.encode([instruction+q for q in sequence], normalize_embeddings=True, device=device)
+    embed_vectors = assist_bi_encoder.encode([instruction+q for q in new_sequence], normalize_embeddings=True, device=device)
 
     return {'embed_vectors': embed_vectors}
 
@@ -92,7 +95,7 @@ def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
 #     embed_vectors = assist_bi_encoder.encode(sequence, normalize_embeddings=True, device=device)
     
 
-    return {'embed_vectors': embed_vectors}
+    # return {'embed_vectors': embed_vectors}
 
 @batch
 def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
