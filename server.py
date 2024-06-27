@@ -55,7 +55,7 @@ assist_cross_encoder.eval()
 
 @batch
 def _infer_fn_nlu(sequence: np.ndarray):
-    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
+    sequence = np.char.decode(sequence.astype("bytes"), "utf-8").tolist()  # need to convert dtype=object to bytes first
     #sequence = sum(sequence.tolist(), [])
 
     embed_vectors = nlu_embedder.encode(sequence, device=device)
@@ -64,7 +64,7 @@ def _infer_fn_nlu(sequence: np.ndarray):
 
 @batch
 def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
-    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
+    sequence = np.char.decode(sequence.astype("bytes"), "utf-8").tolist()  # need to convert dtype=object to bytes first
     #sequence = sum(sequence.tolist(), [])
 
     # embed_vectors = assist_bi_encoder.encode_queries(sequence)
@@ -89,8 +89,8 @@ def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
 def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
     queries = np.char.decode(queries.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     passages = np.char.decode(passages.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
-    #queries = sum(queries.tolist(), [])
-    #passages = sum(passages.tolist(), [])
+    queries = sum(queries.tolist(), [])
+    passages = sum(passages.tolist(), [])
 
     query_passage_list = [[query, passage] for query, passage in zip(queries, passages)]
     # similarity_scores = assist_cross_encoder.compute_score(query_passage_list)
