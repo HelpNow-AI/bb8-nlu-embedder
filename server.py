@@ -70,6 +70,9 @@ def _infer_fn_nlu(sequence: np.ndarray):
 
 @batch
 def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
+    print(sequence)
+    sequence = [gzip.decompress(s).decode("utf-8") for s in sequence]
+    print(sequence)
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
     sequence = sum(sequence.tolist(), [])
 
