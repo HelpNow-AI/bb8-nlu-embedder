@@ -115,6 +115,23 @@ def main():
     )
     args = parser.parse_args()
 
+
+    class DynamicBatcher:
+        max_queue_delay_microseconds: int = 100
+        preferred_batch_size: Optional[list] = [32]
+        preserve_ordering: bool = False
+        priority_levels: int = 0
+        default_priority_level: int = 0
+        default_queue_policy: Optional[QueuePolicy] = None
+        priority_queue_policy: Optional[Dict[int, QueuePolicy]] = None
+
+    class ModelConfig:
+        batching: bool = True
+        max_batch_size: int = 128
+        batcher: DynamicBatcher = DynamicBatcher()
+        response_cache: bool = False
+
+
     with Triton(config= TritonConfig(allow_gpu_metrics=True)) as triton:
         logger.info("Loading embedding model.")
         triton.bind(
