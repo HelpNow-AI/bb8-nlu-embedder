@@ -39,11 +39,6 @@ check_cuda_memory()
 
 # Load models
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
-# assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5', 
-#             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
-#             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-# assist_cross_encoder = FlagReranker('BAAI/bge-reranker-base', use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-
 assist_bi_encoder = SentenceTransformer('BAAI/bge-base-en-v1.5', device=device)
 
 assist_cross_encoder_tokenizer = AutoTokenizer.from_pretrained('BAAI/bge-reranker-base')
@@ -55,45 +50,26 @@ assist_cross_encoder.eval()
 
 @batch
 def _infer_fn_nlu(sequence: np.ndarray):
-    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
-    sequence = sum(sequence.tolist(), [])
+    sequence = np.char.decode(sequence.astype("bytes"), "utf-8").reshape(-1)  # need to convert dtype=object to bytes first
 
     embed_vectors = nlu_embedder.encode(sequence, device=device)
 
     return {'embed_vectors': embed_vectors}
 
 @batch
-def _infer_fn_assist_biencoder_query(sequence: np.ndarray):
+def _infer_fn_assist_biencoder(sequence: np.ndarray):
     sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
-    sequence = sum(sequence.tolist(), [])
+    sequence = np.core.defchararray.add("Represent this sentence for searching relevant passages: ", sequence)
 
-    # embed_vectors = assist_bi_encoder.encode_queries(sequence)
-    instruction = "Represent this sentence for searching relevant passages: "
-    embed_vectors = assist_bi_encoder.encode([instruction+q for q in sequence], normalize_embeddings=True, device=device)
-
-    return {'embed_vectors': embed_vectors}
-
-
-@batch
-def _infer_fn_assist_biencoder_passage(sequence: np.ndarray):
-    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
-    sequence = sum(sequence.tolist(), [])
-
-    # embed_vectors = assist_bi_encoder.encode(sequence)
     embed_vectors = assist_bi_encoder.encode(sequence, normalize_embeddings=True, device=device)
-    
-
     return {'embed_vectors': embed_vectors}
 
 @batch
 def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
-    queries = np.char.decode(queries.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
-    passages = np.char.decode(passages.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
-    queries = sum(queries.tolist(), [])
-    passages = sum(passages.tolist(), [])
+    queries = np.char.decode(queries.astype("bytes"), "utf-8").reshape(-1)  # need to convert dtype=object to bytes first
+    passages = np.char.decode(passages.astype("bytes"), "utf-8").reshape(-1) # need to convert dtype=object to bytes first
 
     query_passage_list = [[query, passage] for query, passage in zip(queries, passages)]
-    # similarity_scores = assist_cross_encoder.compute_score(query_passage_list)
     
     with torch.no_grad():
         inputs = assist_cross_encoder_tokenizer(query_passage_list, padding=True, truncation=True, return_tensors="pt", max_length=512)
@@ -109,7 +85,7 @@ def main():
     parser.add_argument(
         "--max-batch-size",
         type=int,
-        default=10000,
+        default=1024,
         help="Batch size of request.",
         required=False,
     )
@@ -124,37 +100,50 @@ def main():
                 Tensor(name="sequence", dtype=bytes, shape=(1,)),
             ],
             outputs=[
-                Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
             strict=True
         )
         triton.bind(
-            model_name="bb8-embedder-assist-biencoder-query",
-            infer_func=_infer_fn_assist_biencoder_query,
+            model_name="bb8-embedder-nlu-batch",
+            infer_func=_infer_fn_nlu,
+            inputs=[
+                Tensor(name="sequence", dtype=bytes, shape=(1,)),
+            ],
+            outputs=[
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
+            ],
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-nlu.pbtxt')),
+            strict=True
+        )
+        triton.bind(
+            model_name="bb8-embedder-assist-biencoder",
+            infer_func=_infer_fn_assist_biencoder,
             inputs=[
                 
                 Tensor(name="sequence", dtype=bytes, shape=(1,)),
             ],
             outputs=[
-                Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-query.pbtxt')),
             strict=True
         )
         triton.bind(
-            model_name="bb8-embedder-assist-biencoder-passage",
-            infer_func=_infer_fn_assist_biencoder_passage,
+            model_name="bb8-embedder-assist-biencoder-batch",
+            infer_func=_infer_fn_assist_biencoder,
             inputs=[
                 Tensor(name="sequence", dtype=bytes, shape=(1,)),
             ],
             outputs=[
-                Tensor(name="embed_vectors", dtype=bytes, shape=(-1,)),
+                Tensor(name="embed_vectors", dtype=np.float32, shape=(-1,)),
             ],
-            # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-biencoder-passage.pbtxt')),
             strict=True
         )
         triton.bind(
@@ -167,8 +156,8 @@ def main():
             outputs=[
                 Tensor(name="similarity_scores", dtype=bytes, shape=(-1,)),
             ],
-            # config=ModelConfig(max_batch_size=args.max_batch_size),
-            config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt')),
+            config=ModelConfig(max_batch_size=args.max_batch_size),
+            #config=ModelConfigParser.from_file(config_path=Path('./model_config/bb8-embedder-assist-crossencoder.pbtxt')),
             strict=True
         )
         logger.info("Serving inference")
