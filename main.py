@@ -60,6 +60,7 @@ if device.type == "cuda":
 
 ## Load Models ##
 nlu_embedder = SentenceTransformer('bespin-global/klue-sroberta-base-continue-learning-by-mnr', device=device)
+nlu_embedder.to(device)
 assist_bi_encoder = FlagModel('BAAI/bge-base-en-v1.5',
             query_instruction_for_retrieval="Represent this sentence for searching relevant passages: ",
             use_fp16=False) # Setting use_fp16 to True speeds up computation with a slight performance degradation
