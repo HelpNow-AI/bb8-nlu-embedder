@@ -58,7 +58,7 @@ def _infer_fn_nlu(sequence: np.ndarray):
 
 @batch
 def _infer_fn_assist_biencoder(sequence: np.ndarray):
-    sequence = np.char.decode(sequence.astype("bytes"), "utf-8")  # need to convert dtype=object to bytes first
+    sequence = np.char.decode(sequence.astype("bytes"), "utf-8").reshape(-1)  # need to convert dtype=object to bytes first
     sequence = np.core.defchararray.add("Represent this sentence for searching relevant passages: ", sequence)
 
     embed_vectors = assist_bi_encoder.encode(sequence, normalize_embeddings=True, device=device)
