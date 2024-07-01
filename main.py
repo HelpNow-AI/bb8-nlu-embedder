@@ -179,3 +179,22 @@ scheduler.start()
 @app.on_event("shutdown")
 def shutdown_event():
     scheduler.shutdown()
+
+
+#=======================
+from fastapi import FastAPI, BackgroundTasks, Request
+from fastapi.responses import JSONResponse
+from time import sleep
+
+num = 0
+
+def count_sleep():
+    global num
+    num += 1
+    print(f"Running number {num}.")
+    sleep(10)
+
+@app.get('/threadpool')
+def endpoint(request: Request, background_tasks: BackgroundTasks) -> JSONResponse:
+    background_tasks.add_task(count_sleep)
+    return JSONResponse({"message": "Hello, world!"})
