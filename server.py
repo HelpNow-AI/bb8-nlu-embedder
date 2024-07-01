@@ -76,7 +76,7 @@ def _infer_fn_assist_crossencoder(queries: np.ndarray, passages:np.ndarray):
         inputs = inputs.to(device)
         similarity_scores = assist_cross_encoder(**inputs, return_dict=True).logits.view(-1,).float()
 
-    return {'similarity_scores': similarity_scores}
+    return {'similarity_scores': np.array(similarity_scores)}
 
 
 
