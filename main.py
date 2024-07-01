@@ -194,7 +194,10 @@ def count_sleep():
     print(f"Running number {num}.")
     sleep(10)
 
-@app.get('/threadpool')
-def endpoint(request: Request, background_tasks: BackgroundTasks) -> JSONResponse:
+async def threadpool_endpoint(background_tasks: BackgroundTasks) -> JSONResponse:
     background_tasks.add_task(count_sleep)
-    return JSONResponse({"message": "Hello, world!"})
+    return JSONResponse({"message": "Task added to threadpool!"})
+
+@app.get("/threadpool")
+async def get_threadpool(background_tasks: BackgroundTasks):
+    return await threadpool_endpoint(background_tasks)
