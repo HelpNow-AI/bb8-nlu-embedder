@@ -188,23 +188,33 @@ from time import sleep
 
 num = 0
 
-def count_sleep():
+def count_sleep1():
     global num
     num += 1
-    print(f"Running number {num}.")
+    print(f"Running number threadpool1 {num}.")
     sleep(10)
 
-async def threadpool_endpoint(background_tasks: BackgroundTasks) -> JSONResponse:
-    background_tasks.add_task(count_sleep)
+def count_sleep2():
+    global num
+    num += 1
+    print(f"Running number threadpool2 {num}.")
+    sleep(10)
+
+async def threadpool_endpoint1(background_tasks: BackgroundTasks) -> JSONResponse:
+    background_tasks.add_task(count_sleep1)
+    return JSONResponse({"message": "Task added to threadpool!"})
+
+async def threadpool_endpoint2(background_tasks: BackgroundTasks) -> JSONResponse:
+    background_tasks.add_task(count_sleep2)
     return JSONResponse({"message": "Task added to threadpool!"})
 
 @app.get("/threadpool")
 async def get_threadpool(background_tasks: BackgroundTasks):
-    return await threadpool_endpoint(background_tasks)
+    return await threadpool_endpoint1(background_tasks)
 
 @app.get("/threadpool_2")
 async def get_threadpool(background_tasks: BackgroundTasks):
-    return await threadpool_endpoint(background_tasks)
+    return await threadpool_endpoint2(background_tasks)
 
 # from anyio.lowlevel import RunVar
 # from anyio import CapacityLimiter
