@@ -921,7 +921,7 @@ def sentence_embedding_batch(item: EmbeddingItem):
     # similarity_scores = assist_cross_encoder.compute_score(query_doc_list)
     # print(f'⏱️ process time of cross-encoder: {time.time() - s}')
 
-    return JSONResponse({"similarity_scores": [random.uniform(-10, 10) for _ in len(data)]})
+    return JSONResponse({"similarity_scores": [random.uniform(-10, 10) for _ in data]})
 
 
 #===========================
