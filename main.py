@@ -202,10 +202,14 @@ async def threadpool_endpoint(background_tasks: BackgroundTasks) -> JSONResponse
 async def get_threadpool(background_tasks: BackgroundTasks):
     return await threadpool_endpoint(background_tasks)
 
-from anyio.lowlevel import RunVar
-from anyio import CapacityLimiter
+@app.get("/threadpool_2")
+async def get_threadpool(background_tasks: BackgroundTasks):
+    return await threadpool_endpoint(background_tasks)
 
-@app.on_event("startup")
-def startup():
-    print("start")
-    RunVar("_default_thread_limiter").set(CapacityLimiter(40))
+# from anyio.lowlevel import RunVar
+# from anyio import CapacityLimiter
+#
+# @app.on_event("startup")
+# def startup():
+#     print("start")
+#     RunVar("_default_thread_limiter").set(CapacityLimiter(40))
