@@ -216,10 +216,10 @@ async def get_threadpool(background_tasks: BackgroundTasks):
 async def get_threadpool(background_tasks: BackgroundTasks):
     return await threadpool_endpoint2(background_tasks)
 
-# from anyio.lowlevel import RunVar
-# from anyio import CapacityLimiter
-#
-# @app.on_event("startup")
-# def startup():
-#     print("start")
-#     RunVar("_default_thread_limiter").set(CapacityLimiter(40))
+from anyio.lowlevel import RunVar
+from anyio import CapacityLimiter
+
+@app.on_event("startup")
+def startup():
+    print("start")
+    RunVar("_default_thread_limiter").set(CapacityLimiter(100))
